@@ -1,0 +1,72 @@
+services:
+
+  postgres:
+
+    image: postgres:18
+
+    container_name: apartment-inspection-postgres
+
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    ports:
+      - "5432:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  backend:
+
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+
+    container_name: apartment-inspection-backend
+
+    env_file:
+      - .env
+
+    environment:
+      DATABASE_HOST: postgres
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost:5173}
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    volumes:
+      - ./uploads:/app/uploads
+
+
+  frontend:
+
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://127.0.0.1:8000/api}
+
+    container_name: apartment-inspection-frontend
+
+    ports:
+      - "5173:80"
+
+    depends_on:
+      - backend
+
+
+volumes:
+
+  postgres_data:

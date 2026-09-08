@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+python-multipart
+sqlalchemy
+psycopg2-binary
+alembic
+python-dotenv
+pyjwt
+pwdlib[argon2]
+email-validator
+pillow
+
+# torch + torchvision are installed separately in the Dockerfile from the
+# CPU-only wheel index. Install them locally with:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
